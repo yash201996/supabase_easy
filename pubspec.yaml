@@ -2,7 +2,7 @@ name: supabase_easy
 description: "Easy-to-use Supabase helpers for Flutter"
 version: 0.0.1
 homepage: https://github.com/yashprajapati/supabase_easy
-repository: https://github.com/yourname/supabase_easy
+repository: https://github.com/yashprajapati/supabase_easy
 
 environment:
   sdk: ^3.10.7

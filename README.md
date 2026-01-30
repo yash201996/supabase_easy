@@ -9,6 +9,10 @@ Reduce Supabase + Flutter boilerplate by 60–70% while keeping type safety, fle
 - **EasyRepository**: Generic repository for type-safe CRUD operations.
 - **Simplified Real-time**: Easy-to-use streams for real-time updates.
 
+---
+
+**Note**: This plugin is designed to be highly useful for rapid development. We are committed to continuously optimizing the codebase and keeping it updated with the latest Supabase and Flutter features.
+
 ## Getting Started
 
 Add `supabase_easy` to your `pubspec.yaml`:
@@ -17,6 +21,19 @@ Add `supabase_easy` to your `pubspec.yaml`:
 dependencies:
   supabase_easy: ^0.0.1
 ```
+
+## Setup Supabase
+
+To use this plugin, you need to:
+
+1. Create a Supabase project at [supabase.com](https://supabase.com).
+2. Create your tables (e.g., `todos`).
+3. Enable **Row Level Security (RLS)** on your tables.
+4. Add policies to allow authenticated or public access. For testing, you can use:
+   ```sql
+   CREATE POLICY "Allow public access" ON todos FOR ALL TO public USING (true) WITH CHECK (true);
+   ```
+5. Get your **Project URL** and **Anon Key** from the Supabase Dashboard (Settings > API).
 
 ## Usage
 
