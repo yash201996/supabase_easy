@@ -13,13 +13,21 @@ Reduce Supabase + Flutter boilerplate by 60–70% while keeping type safety, fle
 
 **Note**: This plugin is designed to be highly useful for rapid development. We are committed to continuously optimizing the codebase and keeping it updated with the latest Supabase and Flutter features.
 
+## Screenshots
+
+| Login & Signup | Task Management |
+| :---: | :---: |
+| ![Login](screenshots/Screenshot_1769849818.png) | ![TodoList](screenshots/Screenshot_1769849837.png) |
+| ![Signup](screenshots/Screenshot_1769849821.png) | ![Add Task](screenshots/Screenshot_1769849858.png) |
+| | ![Empty State](screenshots/Screenshot_1769849865.png) |
+
 ## Getting Started
 
 Add `supabase_easy` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  supabase_easy: ^0.0.1
+  supabase_easy: ^0.0.2
 ```
 
 ## Setup Supabase
@@ -92,6 +100,10 @@ todoRepo.stream(primaryKey: ['id']).listen((todos) {
 await EasyAuth.signIn(email: '...', password: '...');
 print(EasyAuth.currentUser?.email);
 ```
+
+## Example
+
+Check out the [example](example/) folder for a complete Todo app implementation using this plugin.
 
 ## License
 
