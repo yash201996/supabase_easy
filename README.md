@@ -7,6 +7,7 @@ Reduce Supabase + Flutter boilerplate by 60–70% while keeping type safety, fle
 - **Simplified Initialization**: Initialize Supabase with a single call.
 - **EasyAuth**: Simplified authentication API for common tasks.
 - **EasyRepository**: Generic repository for type-safe CRUD operations.
+- **EasyStorage**: Simplified file management for buckets.
 - **Simplified Real-time**: Easy-to-use streams for real-time updates.
 
 ---
@@ -27,7 +28,7 @@ Add `supabase_easy` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  supabase_easy: ^0.0.2
+  supabase_easy: ^0.0.3
 ```
 
 ## Setup Supabase
@@ -42,6 +43,22 @@ To use this plugin, you need to:
    CREATE POLICY "Allow public access" ON todos FOR ALL TO public USING (true) WITH CHECK (true);
    ```
 5. Get your **Project URL** and **Anon Key** from the Supabase Dashboard (Settings > API).
+
+### Important: OAuth & Storage Setup
+
+To ensure **OAuth** and **Storage** work correctly, please verify the following in your Supabase Dashboard:
+
+#### 🔐 OAuth Configuration
+1. **Enable Providers**: Go to `Auth > Providers` and enable your desired providers (e.g., Google, GitHub).
+2. **Redirect URLs**: Add your application's deep link URL (e.g., `io.supabase.flutter://callback`) to `Auth > URL Configuration > Redirect URLs`.
+3. **Platform Setup**: Follow the [Supabase Auth guide](https://supabase.com/docs/guides/auth/social-login) for specific platform configurations (Android/iOS deep linking).
+
+#### 📁 Storage Configuration
+1. **Create Buckets**: Go to `Storage > Buckets` and create the buckets you reference in your code (e.g., `profiles`, `avatars`).
+2. **Set RLS Policies**: By default, buckets are private. You **must** add policies to allow users to upload or view files.
+   - For public viewing: `Allow SELECT for everyone`.
+   - For user uploads: `Allow INSERT/UPDATE for authenticated users`.
+3. **Public/Private**: Decide if your bucket should be "Public" (files accessible via public URL) or "Private" (files require a signed URL).
 
 ## Usage
 
@@ -99,6 +116,23 @@ todoRepo.stream(primaryKey: ['id']).listen((todos) {
 ```dart
 await EasyAuth.signIn(email: '...', password: '...');
 print(EasyAuth.currentUser?.email);
+```
+
+### 5. Storage
+
+```dart
+// Upload file
+await EasyStorage.upload(
+  bucketId: 'avatars',
+  path: 'user_1.png',
+  file: File('path/to/image.png'),
+);
+
+// Get public URL
+final url = EasyStorage.getPublicUrl(
+  bucketId: 'avatars',
+  path: 'user_1.png',
+);
 ```
 
 ## Example

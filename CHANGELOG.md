@@ -1,3 +1,10 @@
+## 0.0.3
+
+* Added `EasyStorage` for simplified file management (upload, download, delete, signed URLs).
+* Added `signInWithOAuth` to `EasyAuth` for social login support.
+* Added support for `FileOptions`, `SearchOptions`, and `FileObject` in storage operations.
+* Improved library exports for easier integration.
+
 ## 0.0.2
 
 * Updated documentation and README with screenshots.

@@ -5,7 +5,16 @@ import 'src/core/supabase_easy_client.dart';
 export 'src/core/supabase_easy_client.dart';
 export 'src/auth/easy_auth.dart';
 export 'src/database/easy_repository.dart';
-export 'package:supabase_flutter/supabase_flutter.dart' show AuthState, Session, User;
+export 'src/storage/easy_storage.dart';
+export 'package:supabase_flutter/supabase_flutter.dart'
+    show
+        AuthState,
+        Session,
+        User,
+        FileOptions,
+        SearchOptions,
+        FileObject,
+        OAuthProvider;
 
 // You can also add some convenience top-level functions or classes here if needed.
 class SupabaseEasy {

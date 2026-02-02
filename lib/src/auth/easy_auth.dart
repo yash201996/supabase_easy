@@ -38,6 +38,21 @@ class EasyAuth {
     await _auth.signOut();
   }
 
+  /// Initiates social login via OAuth provider.
+  static Future<bool> signInWithOAuth(
+    OAuthProvider provider, {
+    String? redirectTo,
+    String? scopes,
+    Map<String, String>? queryParams,
+  }) async {
+    return await _auth.signInWithOAuth(
+      provider,
+      redirectTo: redirectTo,
+      scopes: scopes,
+      queryParams: queryParams,
+    );
+  }
+
   /// Sends a password reset email to the given [email] address.
   static Future<void> resetPassword(String email) async {
     await _auth.resetPasswordForEmail(email);
