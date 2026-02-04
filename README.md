@@ -66,10 +66,15 @@ To ensure **OAuth** and **Storage** work correctly, please verify the following 
 
 ```dart
 await SupabaseEasy.initialize(
-  url: 'https://your-project.supabase.co',
-  anonKey: 'your-anon-key',
+  url: const String.fromEnvironment('SUPABASE_URL'),
+  anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
 );
 ```
+
+> **Security Note**: Never hardcode your Supabase credentials in your code, especially if you plan to share your repository. Use `--dart-define` or environment variables to inject them at build time:
+> ```bash
+> flutter run --dart-define=SUPABASE_URL=your_url --dart-define=SUPABASE_ANON_KEY=your_key
+> ```
 
 ### 2. Define your Model
 
