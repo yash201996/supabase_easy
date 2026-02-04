@@ -334,7 +334,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   Widget _buildProfileHeader(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: colorScheme.surfaceVariant.withOpacity(0.3),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       child: Row(
         children: [
           GestureDetector(
