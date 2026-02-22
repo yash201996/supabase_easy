@@ -2,6 +2,11 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'supabase_easy_method_channel.dart';
 
+/// Platform interface for `supabase_easy`.
+///
+/// This is the standard Flutter plugin platform interface boilerplate.
+/// It is retained for forward-compatibility but not actively used by the
+/// core `supabase_easy` library, which wraps Supabase in pure Dart.
 abstract class SupabaseEasyPlatform extends PlatformInterface {
   /// Constructs a SupabaseEasyPlatform.
   SupabaseEasyPlatform() : super(token: _token);
@@ -23,6 +28,7 @@ abstract class SupabaseEasyPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  /// Returns the platform version string.
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }

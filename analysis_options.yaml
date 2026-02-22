@@ -2,3 +2,26 @@ include: package:flutter_lints/flutter.yaml
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+linter:
+  rules:
+    # Style
+    - prefer_final_locals
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - avoid_redundant_argument_values
+    - unnecessary_await_in_return
+    - unawaited_futures
+    # Safety
+    - avoid_catches_without_on_clauses
+    - avoid_catching_errors
+    - only_throw_errors
+    - cancel_subscriptions
+    # Pub package
+    - public_member_api_docs
+    - package_api_docs
+
+analyzer:
+  errors:
+    # Treat missing doc comments as a warning, not an info
+    public_member_api_docs: warning

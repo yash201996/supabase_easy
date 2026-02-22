@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/supabase_easy_client.dart';
+import '../core/easy_exception.dart';
 
 /// A simplified helper class for Supabase Storage operations.
 class EasyStorage {
@@ -14,7 +15,8 @@ class EasyStorage {
 
   /// Uploads a file to a specific [bucketId] at the given [path].
   ///
-  /// Supports both [File] and [Uint8List] (bytes).
+  /// Provide either a [file] (io.File) or raw [bytes] (Uint8List).
+  /// Throws [EasyException] when neither is supplied.
   static Future<String> upload({
     required String bucketId,
     required String path,
@@ -23,17 +25,22 @@ class EasyStorage {
     FileOptions options = const FileOptions(),
   }) async {
     if (file == null && bytes == null) {
-      throw Exception('Either file or bytes must be provided for upload.');
+      throw const EasyException(
+        'Either `file` or `bytes` must be provided for upload.',
+      );
     }
-
-    if (file != null) {
-      return await _client.storage
-          .from(bucketId)
-          .upload(path, file, fileOptions: options);
-    } else {
-      return await _client.storage
-          .from(bucketId)
-          .uploadBinary(path, bytes!, fileOptions: options);
+    try {
+      if (file != null) {
+        return await _client.storage
+            .from(bucketId)
+            .upload(path, file, fileOptions: options);
+      } else {
+        return await _client.storage
+            .from(bucketId)
+            .uploadBinary(path, bytes!, fileOptions: options);
+      }
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
     }
   }
 
@@ -42,7 +49,11 @@ class EasyStorage {
     required String bucketId,
     required String path,
   }) async {
-    return await _client.storage.from(bucketId).download(path);
+    try {
+      return await _client.storage.from(bucketId).download(path);
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
+    }
   }
 
   /// Deletes files from the given [bucketId] at the specified [paths].
@@ -50,21 +61,25 @@ class EasyStorage {
     required String bucketId,
     required List<String> paths,
   }) async {
-    return await _client.storage.from(bucketId).remove(paths);
+    try {
+      return await _client.storage.from(bucketId).remove(paths);
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
+    }
   }
 
   /// Gets the public URL for a file in a public bucket.
+  ///
+  /// Pass [transform] to apply server-side image transformations
+  /// (width, height, resize, format, quality) when the feature is enabled
+  /// in your Supabase project.
   static String getPublicUrl({
     required String bucketId,
     required String path,
-    Map<String, dynamic>? transform,
+    TransformOptions? transform,
   }) {
     final storage = _client.storage.from(bucketId);
-    if (transform != null) {
-      // For transformations (if enabled in Supabase project)
-      return storage.getPublicUrl(path);
-    }
-    return storage.getPublicUrl(path);
+    return storage.getPublicUrl(path, transform: transform);
   }
 
   /// Lists all files in a [bucketId] at the given [path].
@@ -73,9 +88,13 @@ class EasyStorage {
     String? path,
     SearchOptions options = const SearchOptions(),
   }) async {
-    return await _client.storage
-        .from(bucketId)
-        .list(path: path, searchOptions: options);
+    try {
+      return await _client.storage
+          .from(bucketId)
+          .list(path: path, searchOptions: options);
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
+    }
   }
 
   /// Moves a file from [fromPath] to [toPath] within the same [bucketId].
@@ -84,7 +103,11 @@ class EasyStorage {
     required String fromPath,
     required String toPath,
   }) async {
-    await _client.storage.from(bucketId).move(fromPath, toPath);
+    try {
+      await _client.storage.from(bucketId).move(fromPath, toPath);
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
+    }
   }
 
   /// Copies a file from [fromPath] to [toPath] within the same [bucketId].
@@ -93,18 +116,28 @@ class EasyStorage {
     required String fromPath,
     required String toPath,
   }) async {
-    await _client.storage.from(bucketId).copy(fromPath, toPath);
+    try {
+      await _client.storage.from(bucketId).copy(fromPath, toPath);
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
+    }
   }
 
   /// Creates a signed URL for a file in a private bucket.
-  /// [expiresIn] is the duration in seconds.
+  ///
+  /// [expiresIn] is the duration in seconds before the URL expires.
   static Future<String> createSignedUrl({
     required String bucketId,
     required String path,
     required int expiresIn,
   }) async {
-    return await _client.storage
-        .from(bucketId)
-        .createSignedUrl(path, expiresIn);
+    try {
+      return await _client.storage
+          .from(bucketId)
+          .createSignedUrl(path, expiresIn);
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
+    }
   }
 }
+

@@ -1,3 +1,15 @@
+## 0.0.4
+
+* **New `EasyException`** — unified error type wrapping `PostgrestException`, `AuthException`, and `StorageException`. All public APIs now throw `EasyException` instead of raw Supabase exceptions.
+* **`EasyRepository`**: fixed `count()` to project only `id` instead of `*` (avoids fetching all row data); added `deleteMany(List<String> ids)` and `updateWhere({filter, data})` bulk operations; `stream()` now accepts optional `orderBy` / `ascending` parameters; all methods wrap errors in `EasyException`.
+* **`EasyStorage`**: fixed `getPublicUrl` — `transform` parameter was silently ignored (dead-code bug); now correctly passes `TransformOptions` to the Supabase SDK; all methods wrap storage errors in `EasyException`.
+* **`EasyAuth`**: added `signInWithOtp` (magic link / OTP email) and `verifyOtp`; added `isSignedIn` convenience getter; all methods wrap auth errors in `EasyException`.
+* **`SupabaseEasyClient`**: added `isInitialized` getter; init-guard now throws a typed `EasyException` instead of a plain `Exception`.
+* **`SupabaseEasy`**: removed bare `library;` directive; exposed `SupabaseEasy.isInitialized`; private constructor added (not meant to be instantiated); private constructor prevents accidental instantiation.
+* **Exports**: added `EasyException`, `AuthException`, `StorageException`, `PostgrestException`, `AuthResponse`, `UserResponse`, `OtpType`, `CountOption`, `TransformOptions` to public barrel exports — users rarely need to import `supabase_flutter` directly.
+* **`pubspec.yaml`**: removed unused `json_annotation`, `json_serializable`, and `build_runner` dependencies.
+* **`analysis_options.yaml`**: tightened lint rules — `prefer_final_locals`, `unawaited_futures`, `avoid_catches_without_on_clauses`, `public_member_api_docs`, and more.
+
 ## 0.0.3
 
 * Added `EasyStorage` for simplified file management (upload, download, delete, signed URLs).
