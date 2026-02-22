@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Updated platform badge in `README.md` to reflect actual supported platforms (Android & iOS only); removed Web, macOS, Windows, and Linux references.
+
 ## 0.0.5
 
 * Improved pub.dev page for better discoverability: rewrote `description` in `pubspec.yaml` to a keyword-rich one-liner.
