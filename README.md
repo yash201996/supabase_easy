@@ -1,18 +1,37 @@
-# Supabase Easy 🚀
+# supabase_easy
 
-Reduce Supabase + Flutter boilerplate by 60–70% while keeping type safety, flexibility, and performance.
+[![pub package](https://img.shields.io/pub/v/supabase_easy.svg)](https://pub.dev/packages/supabase_easy)
+[![pub points](https://img.shields.io/pub/points/supabase_easy)](https://pub.dev/packages/supabase_easy/score)
+[![likes](https://img.shields.io/pub/likes/supabase_easy)](https://pub.dev/packages/supabase_easy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20web%20%7C%20macos%20%7C%20windows%20%7C%20linux-lightgrey)]()
 
-## Features
-
-- **Simplified Initialization**: Initialize Supabase with a single call.
-- **EasyAuth**: Simplified authentication API for common tasks.
-- **EasyRepository**: Generic repository for type-safe CRUD operations.
-- **EasyStorage**: Simplified file management for buckets.
-- **Simplified Real-time**: Easy-to-use streams for real-time updates.
+A thin, type-safe Flutter wrapper around [supabase_flutter](https://pub.dev/packages/supabase_flutter) that cuts Auth, CRUD, real-time, and Storage boilerplate by **60–70%** — without hiding any power.
 
 ---
 
-**Note**: This plugin is designed to be highly useful for rapid development. We are committed to continuously optimizing the codebase and keeping it updated with the latest Supabase and Flutter features.
+## Why supabase_easy?
+
+| Without `supabase_easy` | With `supabase_easy` |
+|-------------------------|----------------------|
+| Repeated `Supabase.instance.client.from(...)` | `todoRepo.getAll()` |
+| Manual `PostgrestException` catching everywhere | One `EasyException` type across all APIs |
+| Writing `select`, `insert`, `update`, `delete`, `.single()` every time | 9 ready-made repository methods |
+| Re-implementing count, bulk-delete, search | `count()`, `deleteMany()`, `updateWhere()` built-in |
+| Hand-rolling auth try/catch blocks | `EasyAuth.signIn / signOut / signInWithOtp` etc. |
+
+---
+
+## Features
+
+- **Single import** — `import 'package:supabase_easy/supabase_easy.dart'`
+- **`EasyAuth`** — email/password, OAuth, magic-link/OTP, password reset, session refresh
+- **`EasyRepository<T>`** — generic type-safe CRUD, bulk ops, search, pagination, real-time streams
+- **`EasyStorage`** — upload (File or bytes), download, delete, signed URLs, image transforms
+- **`EasyException`** — one exception type wrapping `PostgrestException`, `AuthException`, `StorageException`
+- Full DartDoc on every public API
+
+---
 
 ## Screenshots
 
@@ -22,130 +41,229 @@ Reduce Supabase + Flutter boilerplate by 60–70% while keeping type safety, fle
 | ![Signup](screenshots/Screenshot_1769849821.png) | ![Add Task](screenshots/Screenshot_1769849858.png) |
 | | ![Empty State](screenshots/Screenshot_1769849865.png) |
 
+---
+
 ## Getting Started
 
-Add `supabase_easy` to your `pubspec.yaml`:
+### 1. Add dependency
 
 ```yaml
 dependencies:
-  supabase_easy: ^0.0.3
+  supabase_easy: ^0.0.4
 ```
 
-## Setup Supabase
+### 2. Supabase project checklist
 
-To use this plugin, you need to:
+1. Create a project at [supabase.com](https://supabase.com).
+2. Create your tables and enable **Row Level Security (RLS)**.
+3. Copy your **Project URL** and **Anon Key** from _Settings › API_.
 
-1. Create a Supabase project at [supabase.com](https://supabase.com).
-2. Create your tables (e.g., `todos`).
-3. Enable **Row Level Security (RLS)** on your tables.
-4. Add policies to allow authenticated or public access. For testing, you can use:
-   ```sql
-   CREATE POLICY "Allow public access" ON todos FOR ALL TO public USING (true) WITH CHECK (true);
-   ```
-5. Get your **Project URL** and **Anon Key** from the Supabase Dashboard (Settings > API).
-
-### Important: OAuth & Storage Setup
-
-To ensure **OAuth** and **Storage** work correctly, please verify the following in your Supabase Dashboard:
-
-#### 🔐 OAuth Configuration
-1. **Enable Providers**: Go to `Auth > Providers` and enable your desired providers (e.g., Google, GitHub).
-2. **Redirect URLs**: Add your application's deep link URL (e.g., `io.supabase.flutter://callback`) to `Auth > URL Configuration > Redirect URLs`.
-3. **Platform Setup**: Follow the [Supabase Auth guide](https://supabase.com/docs/guides/auth/social-login) for specific platform configurations (Android/iOS deep linking).
-
-#### 📁 Storage Configuration
-1. **Create Buckets**: Go to `Storage > Buckets` and create the buckets you reference in your code (e.g., `profiles`, `avatars`).
-2. **Set RLS Policies**: By default, buckets are private. You **must** add policies to allow users to upload or view files.
-   - For public viewing: `Allow SELECT for everyone`.
-   - For user uploads: `Allow INSERT/UPDATE for authenticated users`.
-3. **Public/Private**: Decide if your bucket should be "Public" (files accessible via public URL) or "Private" (files require a signed URL).
-
-## Usage
-
-### 1. Initialize
-
-```dart
-await SupabaseEasy.initialize(
-  url: const String.fromEnvironment('SUPABASE_URL'),
-  anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
-);
-```
-
-> **Security Note**: Never hardcode your Supabase credentials in your code, especially if you plan to share your repository. Use `--dart-define` or environment variables to inject them at build time:
+> **Security tip:** Never hardcode credentials. Pass them at build time:
 > ```bash
-> flutter run --dart-define=SUPABASE_URL=your_url --dart-define=SUPABASE_ANON_KEY=your_key
+> flutter run \
+>   --dart-define=SUPABASE_URL=https://xyz.supabase.co \
+>   --dart-define=SUPABASE_ANON_KEY=your_anon_key
 > ```
 
-### 2. Define your Model
+### 3. Initialise (once, in `main()`)
 
 ```dart
-class Todo extends EasyModel {
-  @override
-  final String id;
-  final String title;
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  Todo({required this.id, required this.title});
-
-  @override
-  Map<String, dynamic> toJson() => {'id': id, 'title': title};
-
-  factory Todo.fromJson(Map<String, dynamic> json) => Todo(
-    id: json['id'],
-    title: json['title'],
+  await SupabaseEasy.initialize(
+    url: const String.fromEnvironment('SUPABASE_URL'),
+    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
   );
+
+  runApp(const MyApp());
 }
 ```
 
-### 3. Use Repository
+---
+
+## Usage
+
+### EasyAuth
 
 ```dart
-final todoRepo = EasyRepository<Todo>(
+// Email + password
+await EasyAuth.signUp(email: 'user@example.com', password: 'secret');
+await EasyAuth.signIn(email: 'user@example.com', password: 'secret');
+await EasyAuth.signOut();
+
+// Magic link / OTP
+await EasyAuth.signInWithOtp(email: 'user@example.com');
+await EasyAuth.verifyOtp(email: 'user@example.com', token: '123456');
+
+// OAuth (Google, GitHub, …)
+await EasyAuth.signInWithOAuth(OAuthProvider.google);
+
+// Helpers
+print(EasyAuth.isSignedIn);       // bool
+print(EasyAuth.currentUser?.id);  // String?
+
+// React to auth changes
+StreamBuilder<AuthState>(
+  stream: EasyAuth.onAuthStateChange,
+  builder: (context, snapshot) { ... },
+);
+```
+
+### EasyRepository
+
+Define a model:
+
+```dart
+class Todo extends EasyModel {
+  @override final String id;
+  final String title;
+  final bool isDone;
+
+  Todo({required this.id, required this.title, this.isDone = false});
+
+  @override
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'title': title, 'is_done': isDone};
+
+  factory Todo.fromJson(Map<String, dynamic> json) => Todo(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        isDone: json['is_done'] as bool? ?? false,
+      );
+}
+```
+
+Use the repository:
+
+```dart
+final repo = EasyRepository<Todo>(
   tableName: 'todos',
   fromJson: Todo.fromJson,
 );
 
-// Get all
-final todos = await todoRepo.getAll();
+// --- Read ---
+final all    = await repo.getAll();
+final done   = await repo.getAll(filter: {'is_done': true});
+final paged  = await repo.getAll(orderBy: 'created_at', limit: 20, from: 0, to: 19);
+final search = await repo.getAll(searchColumn: 'title', searchQuery: 'milk');
+final single = await repo.getById('some-uuid');  // returns null if missing
+final total  = await repo.count();
 
-// Create
-await todoRepo.create(Todo(id: '1', title: 'Buy milk'));
+// --- Write ---
+final created = await repo.create(Todo(id: 'uuid', title: 'Buy milk'));
+final updated = await repo.update(created.copyWith(isDone: true));
+final upserted = await repo.upsert(todo);
 
-// Real-time stream
-todoRepo.stream(primaryKey: ['id']).listen((todos) {
-  print(todos);
-});
+// Bulk operations
+await repo.createMany([todo1, todo2]);
+await repo.deleteMany(['id-1', 'id-2']);
+await repo.updateWhere(
+  filter: {'is_done': true},
+  data: {'archived': true},
+);
+await repo.delete('some-uuid');
+
+// --- Real-time ---
+StreamBuilder<List<Todo>>(
+  stream: repo.stream(primaryKey: ['id'], orderBy: 'created_at'),
+  builder: (context, snapshot) {
+    final todos = snapshot.data ?? [];
+    return ListView.builder(...);
+  },
+);
 ```
 
-### 4. Simplified Auth
+### EasyStorage
 
 ```dart
-await EasyAuth.signIn(email: '...', password: '...');
-print(EasyAuth.currentUser?.email);
-```
-
-### 5. Storage
-
-```dart
-// Upload file
+// Upload
 await EasyStorage.upload(
   bucketId: 'avatars',
-  path: 'user_1.png',
-  file: File('path/to/image.png'),
+  path: 'user_123.png',
+  file: File('/path/to/image.png'),            // from dart:io
+  // bytes: imageBytes,                        // or raw Uint8List
+  options: const FileOptions(upsert: true),
 );
 
-// Get public URL
+// Public URL (with optional image transform)
 final url = EasyStorage.getPublicUrl(
   bucketId: 'avatars',
-  path: 'user_1.png',
+  path: 'user_123.png',
+  transform: TransformOptions(width: 200, height: 200),
 );
+
+// Signed URL for private buckets
+final signed = await EasyStorage.createSignedUrl(
+  bucketId: 'private-docs',
+  path: 'report.pdf',
+  expiresIn: 3600, // 1 hour
+);
+
+// Download / delete / list / move / copy
+final bytes = await EasyStorage.download(bucketId: 'avatars', path: 'user_123.png');
+await EasyStorage.delete(bucketId: 'avatars', paths: ['user_123.png']);
+final files = await EasyStorage.list(bucketId: 'avatars', path: 'subfolder/');
 ```
 
-## Example
+### Error handling
 
-Check out the [example](example/) folder for a complete Todo app implementation using this plugin.
+Every method throws `EasyException` — one type for all Supabase errors:
+
+```dart
+try {
+  await EasyAuth.signIn(email: email, password: password);
+} on EasyException catch (e) {
+  print(e.message); // human-readable
+  print(e.cause);   // original AuthException / PostgrestException / etc.
+}
+```
+
+---
+
+## OAuth & Storage setup
+
+<details>
+<summary>OAuth (Google, GitHub, …)</summary>
+
+1. Go to **Auth › Providers** and enable desired providers.
+2. Add your deep-link URL (e.g. `io.supabase.flutter://callback`) to **Auth › URL Configuration › Redirect URLs**.
+3. Follow the [Supabase social login guide](https://supabase.com/docs/guides/auth/social-login) for Android/iOS deep-link config.
+
+</details>
+
+<details>
+<summary>Storage buckets</summary>
+
+1. Create buckets in **Storage › Buckets**.
+2. Add RLS policies:
+   - Public read: `Allow SELECT for everyone`
+   - Authenticated upload: `Allow INSERT for authenticated users`
+3. Mark a bucket **Public** for `getPublicUrl` to work without a signed URL.
+
+</details>
+
+---
+
+## API reference
+
+| Class | Key members |
+|-------|------------|
+| `SupabaseEasy` | `initialize()`, `isInitialized` |
+| `EasyAuth` | `signUp`, `signIn`, `signOut`, `signInWithOAuth`, `signInWithOtp`, `verifyOtp`, `resetPassword`, `updateUser`, `refreshSession`, `currentUser`, `isSignedIn`, `onAuthStateChange` |
+| `EasyRepository<T>` | `getAll`, `getById`, `count`, `create`, `createMany`, `update`, `updateWhere`, `upsert`, `delete`, `deleteMany`, `stream` |
+| `EasyStorage` | `upload`, `download`, `delete`, `getPublicUrl`, `createSignedUrl`, `list`, `move`, `copy`, `bucket` |
+| `EasyException` | `message`, `cause` |
+
+---
+
+## Example app
+
+See the [example/](example/) folder for a full Todo app — auth, CRUD, and real-time all wired up.
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
+MIT — see [LICENSE](LICENSE).
 
