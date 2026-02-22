@@ -1,6 +1,6 @@
 name: supabase_easy
 description: "A powerful and lightweight Supabase wrapper for Flutter that reduces boilerplate for Auth, Database CRUD, and Real-time listeners by 60-70%."
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/yashprajapati/supabase_easy
 repository: https://github.com/yashprajapati/supabase_easy
 
