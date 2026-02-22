@@ -1,3 +1,11 @@
+## 0.0.5
+
+* Improved pub.dev page for better discoverability: rewrote `description` in `pubspec.yaml` to a keyword-rich one-liner.
+* Added `topics` (`supabase`, `authentication`, `database`, `storage`, `realtime`) to `pubspec.yaml` for pub.dev topic filtering.
+* Added `issue_tracker` URL to `pubspec.yaml`.
+* Rewrote `README.md` with pub/likes/points/license/platform badges, a "Why supabase\_easy?" comparison table, full code examples for all new v0.0.4 APIs (`deleteMany`, `updateWhere`, `signInWithOtp`, `verifyOtp`, `EasyException`, `TransformOptions`), a quick API-reference table, and collapsible OAuth/Storage setup sections.
+* Updated install snippet in `README.md` to `^0.0.4`.
+
 ## 0.0.4
 
 * **New `EasyException`** — unified error type wrapping `PostgrestException`, `AuthException`, and `StorageException`. All public APIs now throw `EasyException` instead of raw Supabase exceptions.
