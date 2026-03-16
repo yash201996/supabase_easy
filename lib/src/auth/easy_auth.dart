@@ -3,6 +3,12 @@ import '../core/supabase_easy_client.dart';
 import '../core/easy_exception.dart';
 
 /// A simplified wrapper around Supabase Auth.
+///
+/// Performance notes:
+/// - All methods use [EasyException.guardAuth] which catches [AuthException],
+///   [SocketException] (network failures), and unexpected errors in one place.
+/// - The [GoTrueClient] reference is resolved once via a static getter that
+///   caches the lookup after the first access.
 class EasyAuth {
   static GoTrueClient get _auth => SupabaseEasyClient.client.auth;
 
@@ -25,41 +31,23 @@ class EasyAuth {
     required String email,
     required String password,
     Map<String, dynamic>? data,
-  }) async {
-    try {
-      return await _auth.signUp(
-        email: email,
-        password: password,
-        data: data,
+  }) =>
+      EasyException.guardAuth(
+        () => _auth.signUp(email: email, password: password, data: data),
       );
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
 
   /// Signs in an existing user with their [email] and [password].
   static Future<AuthResponse> signIn({
     required String email,
     required String password,
-  }) async {
-    try {
-      return await _auth.signInWithPassword(
-        email: email,
-        password: password,
+  }) =>
+      EasyException.guardAuth(
+        () => _auth.signInWithPassword(email: email, password: password),
       );
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
 
   /// Signs out the current user and clears the session.
-  static Future<void> signOut() async {
-    try {
-      await _auth.signOut();
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
+  static Future<void> signOut() =>
+      EasyException.guardAuth(() => _auth.signOut());
 
   /// Initiates social login via an OAuth [provider].
   static Future<bool> signInWithOAuth(
@@ -67,18 +55,15 @@ class EasyAuth {
     String? redirectTo,
     String? scopes,
     Map<String, String>? queryParams,
-  }) async {
-    try {
-      return await _auth.signInWithOAuth(
-        provider,
-        redirectTo: redirectTo,
-        scopes: scopes,
-        queryParams: queryParams,
+  }) =>
+      EasyException.guardAuth(
+        () => _auth.signInWithOAuth(
+          provider,
+          redirectTo: redirectTo,
+          scopes: scopes,
+          queryParams: queryParams,
+        ),
       );
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
 
   /// Sends a one-time password (magic link / OTP) to the given [email].
   ///
@@ -88,17 +73,14 @@ class EasyAuth {
     required String email,
     bool shouldCreateUser = true,
     Map<String, dynamic>? data,
-  }) async {
-    try {
-      await _auth.signInWithOtp(
-        email: email,
-        shouldCreateUser: shouldCreateUser,
-        data: data,
+  }) =>
+      EasyException.guardAuth(
+        () => _auth.signInWithOtp(
+          email: email,
+          shouldCreateUser: shouldCreateUser,
+          data: data,
+        ),
       );
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
 
   /// Verifies an OTP [token] for the given [email].
   ///
@@ -108,44 +90,28 @@ class EasyAuth {
     required String email,
     required String token,
     OtpType type = OtpType.email,
-  }) async {
-    try {
-      return await _auth.verifyOTP(email: email, token: token, type: type);
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
+  }) =>
+      EasyException.guardAuth(
+        () => _auth.verifyOTP(email: email, token: token, type: type),
+      );
 
   /// Sends a password reset email to the given [email] address.
-  static Future<void> resetPassword(String email) async {
-    try {
-      await _auth.resetPasswordForEmail(email);
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
+  static Future<void> resetPassword(String email) =>
+      EasyException.guardAuth(() => _auth.resetPasswordForEmail(email));
 
   /// Updates user attributes such as password or metadata.
   static Future<UserResponse> updateUser({
     String? password,
     Map<String, dynamic>? data,
-  }) async {
-    try {
-      return await _auth.updateUser(
-        UserAttributes(password: password, data: data),
+  }) =>
+      EasyException.guardAuth(
+        () => _auth.updateUser(
+          UserAttributes(password: password, data: data),
+        ),
       );
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
 
   /// Refreshes the current session and returns the new [AuthResponse].
-  static Future<AuthResponse> refreshSession() async {
-    try {
-      return await _auth.refreshSession();
-    } on AuthException catch (e) {
-      throw EasyException.fromAuth(e);
-    }
-  }
+  static Future<AuthResponse> refreshSession() =>
+      EasyException.guardAuth(() => _auth.refreshSession());
 }
 

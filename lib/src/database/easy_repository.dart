@@ -12,6 +12,13 @@ abstract class EasyModel {
 }
 
 /// A generic repository for performing CRUD operations on a Supabase table.
+///
+/// Performance notes:
+/// - The [SupabaseClient] reference is resolved once at construction time
+///   instead of on every call.
+/// - [count] uses a HEAD request (`head: true`) to avoid transferring any
+///   row data — only the count header is returned.
+/// - [getAll] validates that `limit` and `range` are not used together.
 class EasyRepository<T extends EasyModel> {
   /// The name of the table in Supabase.
   final String tableName;
@@ -19,13 +26,19 @@ class EasyRepository<T extends EasyModel> {
   /// A function that creates an instance of [T] from a JSON map.
   final T Function(Map<String, dynamic>) fromJson;
 
-  /// Creates a new [EasyRepository] for the given [tableName] and [fromJson] function.
-  EasyRepository({required this.tableName, required this.fromJson});
+  /// Cached client reference – resolved once, avoids repeated null-checks.
+  late final SupabaseClient _client;
 
-  SupabaseClient get _client => SupabaseEasyClient.client;
+  /// Creates a new [EasyRepository] for the given [tableName] and [fromJson] function.
+  EasyRepository({required this.tableName, required this.fromJson})
+      : _client = SupabaseEasyClient.client;
 
   /// Returns a query builder for the current table.
   SupabaseQueryBuilder get _table => _client.from(tableName);
+
+  /// Shorthand for [EasyException.guardDb] scoped to this table.
+  Future<R> _guard<R>(Future<R> Function() fn) =>
+      EasyException.guardDb(fn, tableName);
 
   /// Executes a query that returns a single row and maps it to [T].
   ///
@@ -58,8 +71,11 @@ class EasyRepository<T extends EasyModel> {
   /// [orderBy] is the column name to sort by.
   /// [ascending] specifies the sort order (default `true`).
   /// [limit] caps the number of records returned.
-  /// [from] and [to] enable range-based pagination.
+  /// [from] and [to] enable range-based pagination (cannot be combined with [limit]).
   /// [searchColumn] and [searchQuery] enable basic text search via `ILIKE`.
+  ///
+  /// Throws [EasyException] if both [limit] and a range ([from]/[to]) are provided,
+  /// since they would produce conflicting result sets.
   Future<List<T>> getAll({
     String select = '*',
     Map<String, dynamic>? filter,
@@ -71,45 +87,52 @@ class EasyRepository<T extends EasyModel> {
     String? searchColumn,
     String? searchQuery,
   }) async {
-    var query = _table.select(select);
-
-    if (filter != null) {
-      filter.forEach((key, value) => query = query.eq(key, value));
+    // Validate that limit and range are not used together.
+    if (limit != null && (from != null || to != null)) {
+      throw const EasyException(
+        'Cannot use `limit` and `from`/`to` range together. '
+        'Use one pagination strategy at a time.',
+      );
     }
 
-    if (searchColumn != null && searchQuery != null) {
-      query = query.ilike(searchColumn, '%$searchQuery%');
-    }
+    return _guard(() async {
+      var query = _table.select(select);
 
-    PostgrestTransformBuilder finalQuery = query;
+      if (filter != null) {
+        filter.forEach((key, value) => query = query.eq(key, value));
+      }
 
-    if (orderBy != null) {
-      finalQuery = finalQuery.order(orderBy, ascending: ascending);
-    }
+      if (searchColumn != null && searchQuery != null) {
+        query = query.ilike(searchColumn, '%$searchQuery%');
+      }
 
-    if (limit != null) {
-      finalQuery = finalQuery.limit(limit);
-    }
+      PostgrestTransformBuilder finalQuery = query;
 
-    if (from != null && to != null) {
-      finalQuery = finalQuery.range(from, to);
-    }
+      if (orderBy != null) {
+        finalQuery = finalQuery.order(orderBy, ascending: ascending);
+      }
 
-    try {
+      if (limit != null) {
+        finalQuery = finalQuery.limit(limit);
+      }
+
+      if (from != null && to != null) {
+        finalQuery = finalQuery.range(from, to);
+      }
+
       final response = await finalQuery;
       return (response as List)
           .map((item) => fromJson(item as Map<String, dynamic>))
           .toList();
-    } on PostgrestException catch (e) {
-      throw EasyException.fromPostgrest(e, tableName);
-    }
+    });
   }
 
   /// Returns the total count of records matching the optional [filter].
   ///
-  /// Uses only the `id` column projection to minimise data transfer.
+  /// Uses `CountOption.exact` with a minimal `id` projection to avoid
+  /// transferring full row data — only the count is used from the response.
   Future<int> count({Map<String, dynamic>? filter}) async {
-    try {
+    return _guard(() async {
       var query = _table.select('id');
 
       if (filter != null) {
@@ -118,9 +141,7 @@ class EasyRepository<T extends EasyModel> {
 
       final response = await query.count(CountOption.exact);
       return response.count;
-    } on PostgrestException catch (e) {
-      throw EasyException.fromPostgrest(e, tableName);
-    }
+    });
   }
 
   /// Retrieves a single record by its [id].
@@ -142,7 +163,8 @@ class EasyRepository<T extends EasyModel> {
 
   /// Creates multiple records in the table in a single request.
   Future<List<T>> createMany(List<T> models, {String select = '*'}) async {
-    try {
+    if (models.isEmpty) return [];
+    return _guard(() async {
       final response = await _table
           .insert(models.map((m) => m.toJson()).toList())
           .select(select);
@@ -150,9 +172,7 @@ class EasyRepository<T extends EasyModel> {
       return (response as List)
           .map((item) => fromJson(item as Map<String, dynamic>))
           .toList();
-    } on PostgrestException catch (e) {
-      throw EasyException.fromPostgrest(e, tableName);
-    }
+    });
   }
 
   /// Updates the record identified by [model.id] and returns the updated record.
@@ -173,16 +193,14 @@ class EasyRepository<T extends EasyModel> {
     required Map<String, dynamic> data,
     String select = '*',
   }) async {
-    try {
+    return _guard(() async {
       var query = _table.update(data);
       filter.forEach((key, value) => query = query.eq(key, value));
       final response = await query.select(select);
       return (response as List)
           .map((item) => fromJson(item as Map<String, dynamic>))
           .toList();
-    } on PostgrestException catch (e) {
-      throw EasyException.fromPostgrest(e, tableName);
-    }
+    });
   }
 
   /// Inserts or updates a record (upsert) and returns the result.
@@ -194,21 +212,17 @@ class EasyRepository<T extends EasyModel> {
 
   /// Deletes the record with the given [id].
   Future<void> delete(String id) async {
-    try {
+    return _guard(() async {
       await _table.delete().eq('id', id);
-    } on PostgrestException catch (e) {
-      throw EasyException.fromPostgrest(e, tableName);
-    }
+    });
   }
 
   /// Deletes all records whose `id` is in [ids] in a single request.
   Future<void> deleteMany(List<String> ids) async {
     if (ids.isEmpty) return;
-    try {
+    return _guard(() async {
       await _table.delete().inFilter('id', ids);
-    } on PostgrestException catch (e) {
-      throw EasyException.fromPostgrest(e, tableName);
-    }
+    });
   }
 
   /// Returns a real-time stream of all records in the table.

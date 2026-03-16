@@ -1,3 +1,9 @@
+## 0.0.7
+
+* **Refactoring:** Introduced `guardAuth`, `guardStorage`, and `guardPostgrest` helper functions in `EasyException` to streamline error handling across `EasyAuth`, `EasyStorage`, and `EasyRepository`.
+* **Tests:** Added comprehensive unit tests for core modules (`auth`, `core`, `database`, `storage`) and public APIs.
+* **Dependencies:** Added `mocktail` mapping dev dependency for testing purposes.
+
 ## 0.0.6
 
 * Updated platform badge in `README.md` to reflect actual supported platforms (Android & iOS only); removed Web, macOS, Windows, and Linux references.

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A unified exception class for all errors thrown by `supabase_easy`.
@@ -44,4 +45,63 @@ class EasyException implements Exception {
 
   @override
   String toString() => 'EasyException: $message';
+
+  // ---------------------------------------------------------------------------
+  // Guard helpers — centralise try/catch to eliminate repetitive boilerplate
+  // and ensure network errors are always caught.
+  // ---------------------------------------------------------------------------
+
+  /// Executes [fn] and translates any [AuthException] or network error into
+  /// an [EasyException].
+  static Future<R> guardAuth<R>(Future<R> Function() fn) async {
+    try {
+      return await fn();
+    } on AuthException catch (e) {
+      throw EasyException.fromAuth(e);
+    } on SocketException catch (_) {
+      throw const EasyException(
+        'Network error — check your internet connection.',
+      );
+    } catch (e) {
+      if (e is EasyException) rethrow;
+      throw EasyException('Unexpected auth error: $e', cause: e);
+    }
+  }
+
+  /// Executes [fn] and translates any [PostgrestException] or network error
+  /// into an [EasyException].  [context] is typically the table name.
+  static Future<R> guardDb<R>(
+    Future<R> Function() fn, [
+    String? context,
+  ]) async {
+    try {
+      return await fn();
+    } on PostgrestException catch (e) {
+      throw EasyException.fromPostgrest(e, context);
+    } on SocketException catch (_) {
+      throw const EasyException(
+        'Network error — check your internet connection.',
+      );
+    } catch (e) {
+      if (e is EasyException) rethrow;
+      throw EasyException('Unexpected database error: $e', cause: e);
+    }
+  }
+
+  /// Executes [fn] and translates any [StorageException] or network error
+  /// into an [EasyException].
+  static Future<R> guardStorage<R>(Future<R> Function() fn) async {
+    try {
+      return await fn();
+    } on StorageException catch (e) {
+      throw EasyException.fromStorage(e);
+    } on SocketException catch (_) {
+      throw const EasyException(
+        'Network error — check your internet connection.',
+      );
+    } catch (e) {
+      if (e is EasyException) rethrow;
+      throw EasyException('Unexpected storage error: $e', cause: e);
+    }
+  }
 }
