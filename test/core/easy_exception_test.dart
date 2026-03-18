@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_easy/supabase_easy.dart';
 
 void main() {
@@ -33,7 +32,7 @@ void main() {
 
   group('EasyException.fromPostgrest', () {
     test('wraps message and cause', () {
-      final pgError = PostgrestException(message: 'duplicate key');
+      const pgError = PostgrestException(message: 'duplicate key');
       final e = EasyException.fromPostgrest(pgError);
 
       expect(e.message, 'duplicate key');
@@ -41,7 +40,7 @@ void main() {
     });
 
     test('includes context prefix when provided', () {
-      final pgError = PostgrestException(message: 'duplicate key');
+      const pgError = PostgrestException(message: 'duplicate key');
       final e = EasyException.fromPostgrest(pgError, 'todos');
 
       expect(e.message, startsWith('[todos] '));
@@ -49,7 +48,7 @@ void main() {
     });
 
     test('includes hint when available', () {
-      final pgError = PostgrestException(
+      const pgError = PostgrestException(
         message: 'insert failed',
         hint: 'Check RLS policies',
       );
@@ -59,14 +58,14 @@ void main() {
     });
 
     test('omits hint when null', () {
-      final pgError = PostgrestException(message: 'error');
+      const pgError = PostgrestException(message: 'error');
       final e = EasyException.fromPostgrest(pgError);
 
       expect(e.message, isNot(contains('Hint')));
     });
 
     test('includes both context and hint', () {
-      final pgError = PostgrestException(
+      const pgError = PostgrestException(
         message: 'failed',
         hint: 'try again',
       );
@@ -78,7 +77,7 @@ void main() {
 
   group('EasyException.fromAuth', () {
     test('wraps AuthException message and cause', () {
-      final authError = AuthException('Invalid credentials');
+      const authError = AuthException('Invalid credentials');
       final e = EasyException.fromAuth(authError);
 
       expect(e.message, 'Invalid credentials');
@@ -88,7 +87,7 @@ void main() {
 
   group('EasyException.fromStorage', () {
     test('wraps StorageException message and cause', () {
-      final storageError = StorageException('Bucket not found');
+      const storageError = StorageException('Bucket not found');
       final e = EasyException.fromStorage(storageError);
 
       expect(e.message, 'Bucket not found');
@@ -105,7 +104,7 @@ void main() {
     test('wraps AuthException into EasyException', () async {
       expect(
         () => EasyException.guardAuth(
-          () async => throw AuthException('bad creds'),
+          () async => throw const AuthException('bad creds'),
         ),
         throwsA(
           isA<EasyException>()
@@ -167,7 +166,7 @@ void main() {
       expect(
         () => EasyException.guardDb(
           () async =>
-              throw PostgrestException(message: 'constraint violation'),
+              throw const PostgrestException(message: 'constraint violation'),
           'todos',
         ),
         throwsA(
@@ -209,7 +208,7 @@ void main() {
     test('wraps unknown exceptions with cause', () async {
       expect(
         () => EasyException.guardDb(
-          () async => throw FormatException('bad data'),
+          () async => throw const FormatException('bad data'),
         ),
         throwsA(
           isA<EasyException>()
@@ -227,7 +226,7 @@ void main() {
       expect(
         () => EasyException.guardDb(
           () async =>
-              throw PostgrestException(message: 'error'),
+              throw const PostgrestException(message: 'error'),
         ),
         throwsA(
           isA<EasyException>().having(
@@ -249,7 +248,7 @@ void main() {
     test('wraps StorageException into EasyException', () async {
       expect(
         () => EasyException.guardStorage(
-          () async => throw StorageException('File too large'),
+          () async => throw const StorageException('File too large'),
         ),
         throwsA(
           isA<EasyException>()

@@ -36,7 +36,7 @@ void main() {
         await SupabaseEasy.initialize(url: 'https://x.supabase.co', anonKey: 'test-key');
         // If it succeeds (unlikely but possible), isInitialized should be true.
         expect(SupabaseEasy.isInitialized, true);
-      } catch (e) {
+      } on Exception catch (e) {
         // Any error at this point is from the Supabase SDK itself—our
         // delegation was successful.
         expect(e, isNotNull);

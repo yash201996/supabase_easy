@@ -3,7 +3,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_easy/src/auth/easy_auth.dart';
 import 'package:supabase_easy/src/core/easy_exception.dart';
-import 'package:supabase_easy/src/core/supabase_easy_client.dart';
 
 // ---------------------------------------------------------------------------
 // Mocks

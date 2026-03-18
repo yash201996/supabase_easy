@@ -30,7 +30,7 @@ class TestModel extends EasyModel {
 void main() {
   group('EasyModel', () {
     test('toJson returns correct map', () {
-      final model = TestModel(id: '1', name: 'Alice', active: true);
+      final model = TestModel(id: '1', name: 'Alice');
       expect(model.toJson(), {
         'id': '1',
         'name': 'Alice',

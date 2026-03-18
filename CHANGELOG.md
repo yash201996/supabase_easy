@@ -1,3 +1,9 @@
+## 0.1.0
+
+* **Platform Support:** Converted from a Flutter plugin to a pure Dart package. The package now officially supports all 6 Flutter platforms (Android, iOS, Web, Windows, macOS, Linux).
+* **Fixes:** Resolved static analysis warnings (such as removing the deprecated `package_api_docs` lint and fixing minor test issues).
+* **Cleanup:** Removed unused native boilerplate (`android/`, `ios/`) and platform interface files.
+
 ## 0.0.7
 
 * **Refactoring:** Introduced `guardAuth`, `guardStorage`, and `guardPostgrest` helper functions in `EasyException` to streamline error handling across `EasyAuth`, `EasyStorage`, and `EasyRepository`.

@@ -19,7 +19,6 @@ linter:
     - cancel_subscriptions
     # Pub package
     - public_member_api_docs
-    - package_api_docs
 
 analyzer:
   errors:

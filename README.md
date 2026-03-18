@@ -4,7 +4,7 @@
 [![pub points](https://img.shields.io/pub/points/supabase_easy)](https://pub.dev/packages/supabase_easy/score)
 [![likes](https://img.shields.io/pub/likes/supabase_easy)](https://pub.dev/packages/supabase_easy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios-lightgrey)]()
+[![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20web%20%7C%20windows%20%7C%20macos%20%7C%20linux-lightgrey)]()
 
 A thin, type-safe Flutter wrapper around [supabase_flutter](https://pub.dev/packages/supabase_flutter) that cuts Auth, CRUD, real-time, and Storage boilerplate by **60–70%** — without hiding any power.
 
@@ -49,7 +49,7 @@ A thin, type-safe Flutter wrapper around [supabase_flutter](https://pub.dev/pack
 
 ```yaml
 dependencies:
-  supabase_easy: ^0.0.6
+  supabase_easy: ^0.1.0
 ```
 
 ### 2. Supabase project checklist
